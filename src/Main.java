@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
@@ -7,7 +9,6 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        // Store multiple expenses
         ArrayList<Expense> expenses = new ArrayList<>();
 
         System.out.println("================================");
@@ -18,7 +19,7 @@ public class Main {
         int count = scanner.nextInt();
         scanner.nextLine();
 
-        // Get expense details
+        // Enter expenses
         for (int i = 0; i < count; i++) {
 
             System.out.println("\nExpense " + (i + 1));
@@ -33,20 +34,29 @@ public class Main {
             double amount = scanner.nextDouble();
             scanner.nextLine();
 
-            // Create an Expense object
             Expense expense = new Expense(name, category, amount);
 
-            // Add it to the list
             expenses.add(expense);
 
             System.out.println("Expense added successfully!");
         }
 
-        // Calculate total spending
+        // Store spending for each category
+        Map<String, Double> categoryTotals = new LinkedHashMap<>();
+
         double total = 0;
 
         for (Expense expense : expenses) {
-            total += expense.getAmount();
+
+            double amount = expense.getAmount();
+            String category = expense.getCategory();
+
+            total += amount;
+
+            double previousTotal =
+                    categoryTotals.getOrDefault(category, 0.0);
+
+            categoryTotals.put(category, previousTotal + amount);
         }
 
         // Display all expenses
@@ -54,17 +64,29 @@ public class Main {
 
         for (Expense expense : expenses) {
 
-            System.out.println(
-                expense.getName()
-                + " | "
-                + expense.getCategory()
-                + " | Rs. "
-                + expense.getAmount()
+            System.out.printf(
+                    "%s | %s | Rs. %.2f%n",
+                    expense.getName(),
+                    expense.getCategory(),
+                    expense.getAmount()
             );
         }
 
-        System.out.println("-----------------------------------");
+        // Display analysis
+        System.out.println("\n========== EXPENSE ANALYSIS ==========");
+
         System.out.printf("Total Spending: Rs. %.2f%n", total);
+
+        System.out.println("\nCategory-wise Spending:");
+
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+
+            System.out.printf(
+                    "%s: Rs. %.2f%n",
+                    entry.getKey(),
+                    entry.getValue()
+            );
+        }
 
         scanner.close();
     }
