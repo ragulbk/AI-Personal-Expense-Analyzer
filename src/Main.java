@@ -7,18 +7,18 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        ArrayList<String> expenseNames = new ArrayList<>();
-        ArrayList<String> categories = new ArrayList<>();
-        ArrayList<Double> amounts = new ArrayList<>();
+        // Store multiple expenses
+        ArrayList<Expense> expenses = new ArrayList<>();
 
         System.out.println("================================");
         System.out.println("  PERSONAL EXPENSE ANALYZER");
         System.out.println("================================");
 
-        System.out.print("How many expenses do you want to enter? ");
+        System.out.print("How many expenses do you want to add? ");
         int count = scanner.nextInt();
         scanner.nextLine();
 
+        // Get expense details
         for (int i = 0; i < count; i++) {
 
             System.out.println("\nExpense " + (i + 1));
@@ -33,22 +33,38 @@ public class Main {
             double amount = scanner.nextDouble();
             scanner.nextLine();
 
-            expenseNames.add(name);
-            categories.add(category);
-            amounts.add(amount);
+            // Create an Expense object
+            Expense expense = new Expense(name, category, amount);
+
+            // Add it to the list
+            expenses.add(expense);
 
             System.out.println("Expense added successfully!");
         }
 
-        System.out.println("\n========== EXPENSE LIST ==========");
+        // Calculate total spending
+        double total = 0;
 
-        for (int i = 0; i < expenseNames.size(); i++) {
-
-            System.out.println("\nExpense " + (i + 1));
-            System.out.println("Name: " + expenseNames.get(i));
-            System.out.println("Category: " + categories.get(i));
-            System.out.printf("Amount: Rs. %.2f%n", amounts.get(i));
+        for (Expense expense : expenses) {
+            total += expense.getAmount();
         }
+
+        // Display all expenses
+        System.out.println("\n========== YOUR EXPENSES ==========");
+
+        for (Expense expense : expenses) {
+
+            System.out.println(
+                expense.getName()
+                + " | "
+                + expense.getCategory()
+                + " | Rs. "
+                + expense.getAmount()
+            );
+        }
+
+        System.out.println("-----------------------------------");
+        System.out.printf("Total Spending: Rs. %.2f%n", total);
 
         scanner.close();
     }
