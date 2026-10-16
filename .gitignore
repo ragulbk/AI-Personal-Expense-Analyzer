@@ -12,3 +12,6 @@ build/
 # Environment variables and secrets
 .env
 .env.*
+
+# Personal expense data
+expenses.txt

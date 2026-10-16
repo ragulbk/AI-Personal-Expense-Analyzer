@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.io.IOException;
 
 public class Main {
 
@@ -9,6 +10,18 @@ public class Main {
     static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
+
+        // Load previously saved expenses
+        try {
+            expenses = ExpenseStorage.loadExpenses();
+            System.out.println(
+                "Loaded " + expenses.size() + " saved expenses."
+            );
+        } catch (IOException e) {
+            System.out.println(
+                "Could not load saved expenses: " + e.getMessage()
+            );
+        }
 
         int choice;
 
@@ -55,11 +68,15 @@ public class Main {
                     break;
 
                 case 7:
-                    System.out.println("Thank you for using Expense Analyzer!");
+                    System.out.println(
+                        "Thank you for using Expense Analyzer!"
+                    );
                     break;
 
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    System.out.println(
+                        "Invalid choice. Please try again."
+                    );
             }
 
         } while (choice != 7);
@@ -67,6 +84,7 @@ public class Main {
         scanner.close();
     }
 
+    // Add a new expense
     static void addExpense() {
 
         System.out.print("Enter expense name: ");
@@ -79,17 +97,29 @@ public class Main {
         double amount = scanner.nextDouble();
         scanner.nextLine();
 
-        if (amount <= 0) {
-            System.out.println("Amount must be greater than zero.");
+        if (name.isBlank() || category.isBlank()) {
+            System.out.println(
+                "Expense name and category cannot be empty."
+            );
+            return;
+        }
+
+        if (!Double.isFinite(amount) || amount <= 0) {
+            System.out.println(
+                "Amount must be a positive, valid number."
+            );
             return;
         }
 
         Expense expense = new Expense(name, category, amount);
         expenses.add(expense);
 
+        saveExpensesToFile();
+
         System.out.println("Expense added successfully!");
     }
 
+    // Display all expenses
     static void viewExpenses() {
 
         if (expenses.isEmpty()) {
@@ -113,6 +143,7 @@ public class Main {
         }
     }
 
+    // Calculate total spending
     static void viewTotalSpending() {
 
         double total = 0;
@@ -121,17 +152,24 @@ public class Main {
             total += expense.getAmount();
         }
 
-        System.out.printf("Total Spending: Rs. %.2f%n", total);
+        System.out.printf(
+            "Total Spending: Rs. %.2f%n",
+            total
+        );
     }
 
+    // Calculate category-wise spending
     static void viewCategoryAnalysis() {
 
         if (expenses.isEmpty()) {
-            System.out.println("No expenses available for analysis.");
+            System.out.println(
+                "No expenses available for analysis."
+            );
             return;
         }
 
-        Map<String, Double> categoryTotals = new LinkedHashMap<>();
+        Map<String, Double> categoryTotals =
+            new LinkedHashMap<>();
 
         for (Expense expense : expenses) {
 
@@ -141,12 +179,18 @@ public class Main {
             double previousTotal =
                 categoryTotals.getOrDefault(category, 0.0);
 
-            categoryTotals.put(category, previousTotal + amount);
+            categoryTotals.put(
+                category,
+                previousTotal + amount
+            );
         }
 
-        System.out.println("\n====== CATEGORY-WISE SPENDING ======");
+        System.out.println(
+            "\n====== CATEGORY-WISE SPENDING ======"
+        );
 
-        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+        for (Map.Entry<String, Double> entry
+                : categoryTotals.entrySet()) {
 
             System.out.printf(
                 "%s: Rs. %.2f%n",
@@ -156,16 +200,22 @@ public class Main {
         }
     }
 
+    // Edit an existing expense
     static void editExpense() {
 
         if (expenses.isEmpty()) {
-            System.out.println("No expenses available to edit.");
+            System.out.println(
+                "No expenses available to edit."
+            );
             return;
         }
 
         viewExpenses();
 
-        System.out.print("Enter the expense number to edit: ");
+        System.out.print(
+            "Enter the expense number to edit: "
+        );
+
         int number = scanner.nextInt();
         scanner.nextLine();
 
@@ -176,59 +226,96 @@ public class Main {
 
         Expense oldExpense = expenses.get(number - 1);
 
-        System.out.println("Press Enter to keep the existing name or category.");
+        System.out.println(
+            "Press Enter to keep an existing value."
+        );
 
-        System.out.print("Enter new name (" + oldExpense.getName() + "): ");
+        System.out.print(
+            "Enter new name (" + oldExpense.getName() + "): "
+        );
+
         String name = scanner.nextLine();
 
         if (name.isBlank()) {
             name = oldExpense.getName();
         }
 
-        System.out.print("Enter new category (" + oldExpense.getCategory() + "): ");
+        System.out.print(
+            "Enter new category (" +
+            oldExpense.getCategory() + "): "
+        );
+
         String category = scanner.nextLine();
 
         if (category.isBlank()) {
             category = oldExpense.getCategory();
         }
 
-        System.out.print("Enter new amount (" + oldExpense.getAmount() + "): ");
+        System.out.print(
+            "Enter new amount (" +
+            oldExpense.getAmount() + "): "
+        );
+
         String amountInput = scanner.nextLine();
 
         double amount;
 
         if (amountInput.isBlank()) {
+
             amount = oldExpense.getAmount();
+
         } else {
+
             try {
                 amount = Double.parseDouble(amountInput);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid amount. Expense was not changed.");
+                System.out.println(
+                    "Invalid amount. Expense was not changed."
+                );
                 return;
             }
 
-            if (amount <= 0) {
-                System.out.println("Amount must be greater than zero.");
+            if (!Double.isFinite(amount) || amount <= 0) {
+                System.out.println(
+                    "Amount must be a positive, valid number."
+                );
                 return;
             }
         }
 
-        Expense updatedExpense = new Expense(name, category, amount);
+        if (name.isBlank() || category.isBlank()) {
+            System.out.println(
+                "Name and category cannot be empty."
+            );
+            return;
+        }
+
+        Expense updatedExpense =
+            new Expense(name, category, amount);
+
         expenses.set(number - 1, updatedExpense);
+
+        saveExpensesToFile();
 
         System.out.println("Expense updated successfully!");
     }
 
+    // Delete an expense
     static void deleteExpense() {
 
         if (expenses.isEmpty()) {
-            System.out.println("No expenses available to delete.");
+            System.out.println(
+                "No expenses available to delete."
+            );
             return;
         }
 
         viewExpenses();
 
-        System.out.print("Enter the expense number to delete: ");
+        System.out.print(
+            "Enter the expense number to delete: "
+        );
+
         int number = scanner.nextInt();
         scanner.nextLine();
 
@@ -237,10 +324,31 @@ public class Main {
             return;
         }
 
-        Expense removedExpense = expenses.remove(number - 1);
+        Expense removedExpense =
+            expenses.remove(number - 1);
+
+        saveExpensesToFile();
 
         System.out.println(
             "Deleted expense: " + removedExpense.getName()
         );
+    }
+
+    // Save the current expense list to a file
+    static void saveExpensesToFile() {
+
+        try {
+            ExpenseStorage.saveExpenses(expenses);
+
+            System.out.println(
+                "Expenses saved successfully!"
+            );
+
+        } catch (IOException e) {
+
+            System.out.println(
+                "Error saving expenses: " + e.getMessage()
+            );
+        }
     }
 }
