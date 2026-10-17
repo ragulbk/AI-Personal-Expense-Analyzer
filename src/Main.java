@@ -41,8 +41,9 @@ public class Main {
             System.out.println("3. View Total Spending");
             System.out.println("4. View Category Analysis");
             System.out.println("5. Edit Expense");
-            System.out.println("6. Delete Expense");
-            System.out.println("7. Exit");
+System.out.println("6. Delete Expense");
+System.out.println("7. Monthly Spending Report");
+System.out.println("8. Exit");
 
             System.out.print("\nEnter your choice: ");
 
@@ -86,10 +87,14 @@ public class Main {
                     break;
 
                 case 7:
-                    System.out.println(
-                        "Thank you for using Expense Analyzer!"
-                    );
-                    break;
+    monthlySpendingReport();
+    break;
+
+case 8:
+    System.out.println(
+        "Thank you for using Expense Analyzer!"
+    );
+    break;
 
                 default:
                     System.out.println(
@@ -97,7 +102,7 @@ public class Main {
                     );
             }
 
-        } while (choice != 7);
+        } while (choice != 8);
 
         scanner.close();
     }
@@ -411,4 +416,100 @@ public class Main {
             );
         }
     }
+// Calculates spending for a selected month and year.
+static void monthlySpendingReport() {
+
+    // A report cannot be generated if there are no expenses.
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available for analysis.");
+        return;
+    }
+
+    Scanner reportScanner = new Scanner(System.in);
+
+    int year;
+    int month;
+
+    // Ask for the year.
+    System.out.print("Enter year (e.g., 2026): ");
+
+    if (!reportScanner.hasNextInt()) {
+        System.out.println("Invalid year. Please enter a number.");
+        reportScanner.nextLine();
+        return;
+    }
+
+    year = reportScanner.nextInt();
+
+    // Ask for the month.
+    System.out.print("Enter month (1-12): ");
+
+    if (!reportScanner.hasNextInt()) {
+        System.out.println("Invalid month. Please enter a number.");
+        reportScanner.nextLine();
+        return;
+    }
+
+    month = reportScanner.nextInt();
+
+    // Validate the year and month.
+    if (year < 1 || month < 1 || month > 12) {
+        System.out.println("Invalid year or month.");
+        return;
+    }
+
+    // Store category totals for the selected month.
+    Map<String, Double> categoryTotals = new LinkedHashMap<>();
+
+    double monthlyTotal = 0;
+
+    // Examine every expense.
+    for (Expense expense : expenses) {
+
+        // Include only expenses matching the selected year and month.
+        if (expense.getDate().getYear() == year
+                && expense.getDate().getMonthValue() == month) {
+
+            String category = expense.getCategory();
+            double amount = expense.getAmount();
+
+            double previousTotal =
+                categoryTotals.getOrDefault(category, 0.0);
+
+            categoryTotals.put(
+                category,
+                previousTotal + amount
+            );
+
+            monthlyTotal += amount;
+        }
+    }
+
+    // Display the report heading.
+    System.out.println("\n========== MONTHLY SPENDING REPORT ==========");
+
+    System.out.println("Month: " + month + "/" + year);
+
+    if (categoryTotals.isEmpty()) {
+        System.out.println("No expenses found for this month.");
+        return;
+    }
+
+    // Display spending for each category.
+    for (Map.Entry<String, Double> entry
+            : categoryTotals.entrySet()) {
+
+        System.out.printf(
+            "%s: Rs. %.2f%n",
+            entry.getKey(),
+            entry.getValue()
+        );
+    }
+
+    // Display the total spending for the selected month.
+    System.out.printf(
+        "Total Spending: Rs. %.2f%n",
+        monthlyTotal
+    );
+}
 }
