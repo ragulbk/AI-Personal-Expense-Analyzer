@@ -1,67 +1,49 @@
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.io.IOException;
 
 public class Main {
 
-    // Stores all expenses.
-    static ArrayList<Expense> expenses = new ArrayList<>();
+    private static ArrayList<Expense> expenses = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
 
-    // Reads input entered by the user.
-    static Scanner scanner = new Scanner(System.in);
-
-    // Main method: program execution starts here.
     public static void main(String[] args) {
 
-        // Load saved expenses when the program starts.
         try {
             expenses = ExpenseStorage.loadExpenses();
-
-            System.out.println(
-                "Loaded " + expenses.size() + " saved expenses."
-            );
-
+            System.out.println("Previous expenses loaded successfully.");
         } catch (IOException e) {
-            System.out.println(
-                "Could not load saved expenses: " + e.getMessage()
-            );
+            System.out.println("Could not load expenses: " + e.getMessage());
         }
 
         int choice = 0;
 
-        // Display the menu repeatedly until the user exits.
-        do {
-            System.out.println("\n====================================");
-            System.out.println("     PERSONAL EXPENSE ANALYZER");
-            System.out.println("====================================");
+        while (choice != 8) {
+            System.out.println("\n===== PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
             System.out.println("3. View Total Spending");
             System.out.println("4. View Category Analysis");
             System.out.println("5. Edit Expense");
-System.out.println("6. Delete Expense");
-System.out.println("7. Monthly Spending Report");
-System.out.println("8. Exit");
+            System.out.println("6. Delete Expense");
+            System.out.println("7. Monthly Spending Report");
+            System.out.println("8. Exit");
+            System.out.print("Enter your choice: ");
 
-            System.out.print("\nEnter your choice: ");
-
-            // Validate menu input.
-            if (scanner.hasNextInt()) {
-                choice = scanner.nextInt();
-                scanner.nextLine();
-            } else {
-                System.out.println(
-                    "Invalid input! Please enter a number."
-                );
+            if (!scanner.hasNextInt()) {
+                System.out.println("Please enter a valid number.");
                 scanner.nextLine();
                 continue;
             }
 
-            // Execute the selected operation.
-            switch (choice) {
+            choice = scanner.nextInt();
+            scanner.nextLine();
 
+            switch (choice) {
                 case 1:
                     addExpense();
                     break;
@@ -75,7 +57,7 @@ System.out.println("8. Exit");
                     break;
 
                 case 4:
-                    viewCategoryAnalysis();
+                    categoryAnalysis();
                     break;
 
                 case 5:
@@ -87,109 +69,87 @@ System.out.println("8. Exit");
                     break;
 
                 case 7:
-    monthlySpendingReport();
-    break;
+                    monthlySpendingReport();
+                    break;
 
-case 8:
-    System.out.println(
-        "Thank you for using Expense Analyzer!"
-    );
-    break;
+                case 8:
+                    System.out.println("Thank you for using Expense Analyzer!");
+                    break;
 
                 default:
-                    System.out.println(
-                        "Invalid choice. Please select 1 to 7."
-                    );
+                    System.out.println("Invalid choice. Please select 1-8.");
             }
-
-        } while (choice != 8);
+        }
 
         scanner.close();
     }
 
-    // Adds a new expense.
-    static void addExpense() {
+    // Add a new expense
+    private static void addExpense() {
 
         System.out.print("Enter expense name: ");
         String name = scanner.nextLine().trim();
 
-        if (name.isEmpty()) {
+        if (name.isBlank()) {
             System.out.println("Expense name cannot be empty.");
             return;
         }
 
-        System.out.print("Enter category: ");
+        System.out.print("Enter category (Food, Travel, Shopping, etc.): ");
         String category = scanner.nextLine().trim();
 
-        if (category.isEmpty()) {
+        if (category.isBlank()) {
             System.out.println("Category cannot be empty.");
             return;
         }
 
         System.out.print("Enter amount: ");
-        String amountInput = scanner.nextLine().trim();
 
-        double amount;
-
-        // Convert the amount to a number.
-        try {
-            amount = Double.parseDouble(amountInput);
-        } catch (NumberFormatException e) {
-            System.out.println(
-                "Invalid amount! Please enter a number."
-            );
+        if (!scanner.hasNextDouble()) {
+            System.out.println("Please enter a valid amount.");
+            scanner.nextLine();
             return;
         }
 
-        // Amount must be positive and finite.
+        double amount = scanner.nextDouble();
+        scanner.nextLine();
+
         if (!Double.isFinite(amount) || amount <= 0) {
-            System.out.println(
-                "Amount must be a finite number greater than zero."
-            );
+            System.out.println("Amount must be greater than zero.");
             return;
         }
 
-        // Create an expense with today's date.
         Expense expense = new Expense(name, category, amount);
-
-        // Add the expense to the list.
         expenses.add(expense);
 
-        System.out.println("Expense added successfully!");
+        saveExpenses();
 
-        // Save changes to the file.
-        saveExpensesToFile();
+        System.out.println("Expense added successfully!");
     }
 
-    // Displays all expenses, including their dates.
-    static void viewExpenses() {
+    // View all expenses
+    private static void viewExpenses() {
 
         if (expenses.isEmpty()) {
-            System.out.println("No expenses added yet.");
+            System.out.println("No expenses found.");
             return;
         }
 
-        System.out.println("\n================ YOUR EXPENSES ================");
+        System.out.println("\n===== ALL EXPENSES =====");
 
-        // Loop through all expenses.
         for (int i = 0; i < expenses.size(); i++) {
-
             Expense expense = expenses.get(i);
 
-            // Display the expense details and date.
-            System.out.printf(
-                "%d. %s | %s | Rs. %.2f | Date: %s%n",
-                i + 1,
-                expense.getName(),
-                expense.getCategory(),
-                expense.getAmount(),
-                expense.getDate()
-            );
+            System.out.println("\nExpense #" + (i + 1));
+            System.out.println("Name: " + expense.getName());
+            System.out.println("Category: " + expense.getCategory());
+            System.out.println("Amount: Rs. " + expense.getAmount());
+            System.out.println("Date: " + expense.getDate());
         }
     }
 
-    // Calculates the total amount spent.
-    static void viewTotalSpending() {
+    // Calculate total spending
+    private static void viewTotalSpending() {
 
         double total = 0;
 
@@ -197,76 +157,52 @@ case 8:
             total += expense.getAmount();
         }
 
-        System.out.printf(
-            "Total Spending: Rs. %.2f%n",
-            total
-        );
+        System.out.println("Total Spending: Rs. " + total);
     }
 
-    // Calculates spending for each category.
-    static void viewCategoryAnalysis() {
+    // Analyze spending by category
+    private static void categoryAnalysis() {
 
         if (expenses.isEmpty()) {
-            System.out.println(
-                "No expenses available for analysis."
-            );
+            System.out.println("No expenses available for analysis.");
             return;
         }
 
-        // Maps category names to their spending totals.
-        Map<String, Double> categoryTotals =
-            new LinkedHashMap<>();
+        Map<String, Double> categoryTotals = new LinkedHashMap<>();
 
         for (Expense expense : expenses) {
-
             String category = expense.getCategory();
-            double amount = expense.getAmount();
 
-            // Get the existing total, or zero for a new category.
-            double previousTotal =
-                categoryTotals.getOrDefault(category, 0.0);
-
-            // Update the category's total.
             categoryTotals.put(
                 category,
-                previousTotal + amount
+                categoryTotals.getOrDefault(category, 0.0)
+                    + expense.getAmount()
             );
         }
 
-        System.out.println("\n====== CATEGORY-WISE SPENDING ======");
+        System.out.println("\n===== CATEGORY ANALYSIS =====");
 
-        // Display each category's total.
-        for (Map.Entry<String, Double> entry
-                : categoryTotals.entrySet()) {
-
-            System.out.printf(
-                "%s: Rs. %.2f%n",
-                entry.getKey(),
-                entry.getValue()
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+            System.out.println(
+                entry.getKey() + ": Rs. " + entry.getValue()
             );
         }
     }
 
-    // Edits an existing expense.
-    static void editExpense() {
+    // Edit an existing expense
+    private static void editExpense() {
 
         if (expenses.isEmpty()) {
-            System.out.println(
-                "No expenses available to edit."
-            );
+            System.out.println("No expenses available to edit.");
             return;
         }
 
         viewExpenses();
 
-        System.out.print(
-            "Enter the expense number to edit: "
-        );
+        System.out.print("\nEnter the expense number to edit: ");
 
         if (!scanner.hasNextInt()) {
-            System.out.println(
-                "Invalid input! Please enter a number."
-            );
+            System.out.println("Please enter a valid number.");
             scanner.nextLine();
             return;
         }
@@ -274,7 +210,6 @@ case 8:
         int number = scanner.nextInt();
         scanner.nextLine();
 
-        // Check that the selected expense exists.
         if (number < 1 || number > expenses.size()) {
             System.out.println("Invalid expense number.");
             return;
@@ -282,67 +217,38 @@ case 8:
 
         Expense oldExpense = expenses.get(number - 1);
 
-        System.out.println(
-            "Press Enter to keep the existing value."
-        );
-
-        // Request a new name.
-        System.out.print(
-            "Enter new name (" + oldExpense.getName() + "): "
-        );
-
+        System.out.print("Enter new name: ");
         String name = scanner.nextLine().trim();
 
-        if (name.isEmpty()) {
-            name = oldExpense.getName();
+        if (name.isBlank()) {
+            System.out.println("Name cannot be empty.");
+            return;
         }
 
-        // Request a new category.
-        System.out.print(
-            "Enter new category (" + oldExpense.getCategory() + "): "
-        );
-
+        System.out.print("Enter new category: ");
         String category = scanner.nextLine().trim();
 
-        if (category.isEmpty()) {
-            category = oldExpense.getCategory();
+        if (category.isBlank()) {
+            System.out.println("Category cannot be empty.");
+            return;
         }
 
-        // Request a new amount.
-        System.out.print(
-            "Enter new amount (" + oldExpense.getAmount() + "): "
-        );
+        System.out.print("Enter new amount: ");
 
-        String amountInput = scanner.nextLine().trim();
-
-        double amount;
-
-        if (amountInput.isEmpty()) {
-
-            // Keep the existing amount.
-            amount = oldExpense.getAmount();
-
-        } else {
-
-            try {
-                amount = Double.parseDouble(amountInput);
-            } catch (NumberFormatException e) {
-                System.out.println(
-                    "Invalid amount. Expense was not changed."
-                );
-                return;
-            }
-
-            if (!Double.isFinite(amount) || amount <= 0) {
-                System.out.println(
-                    "Amount must be greater than zero. "
-                    + "Expense was not changed."
-                );
-                return;
-            }
+        if (!scanner.hasNextDouble()) {
+            System.out.println("Please enter a valid amount.");
+            scanner.nextLine();
+            return;
         }
 
-        // Preserve the existing date when editing an expense.
+        double amount = scanner.nextDouble();
+        scanner.nextLine();
+
+        if (!Double.isFinite(amount) || amount <= 0) {
+            System.out.println("Amount must be greater than zero.");
+            return;
+        }
+
         Expense updatedExpense = new Expense(
             name,
             category,
@@ -350,34 +256,27 @@ case 8:
             oldExpense.getDate()
         );
 
-        // Replace the old expense with the updated one.
         expenses.set(number - 1, updatedExpense);
 
-        System.out.println("Expense updated successfully!");
+        saveExpenses();
 
-        saveExpensesToFile();
+        System.out.println("Expense updated successfully!");
     }
 
-    // Deletes an expense.
-    static void deleteExpense() {
+    // Delete an expense
+    private static void deleteExpense() {
 
         if (expenses.isEmpty()) {
-            System.out.println(
-                "No expenses available to delete."
-            );
+            System.out.println("No expenses available to delete.");
             return;
         }
 
         viewExpenses();
 
-        System.out.print(
-            "Enter the expense number to delete: "
-        );
+        System.out.print("\nEnter the expense number to delete: ");
 
         if (!scanner.hasNextInt()) {
-            System.out.println(
-                "Invalid input! Please enter a number."
-            );
+            System.out.println("Please enter a valid number.");
             scanner.nextLine();
             return;
         }
@@ -390,126 +289,81 @@ case 8:
             return;
         }
 
-        // Remove the selected expense.
         Expense removedExpense = expenses.remove(number - 1);
+
+        saveExpenses();
 
         System.out.println(
             "Deleted expense: " + removedExpense.getName()
         );
-
-        saveExpensesToFile();
     }
 
-    // Saves expenses using ExpenseStorage.
-    static void saveExpensesToFile() {
+    // Generate a monthly spending report
+    private static void monthlySpendingReport() {
+
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses available for the report.");
+            return;
+        }
+
+        LocalDate today = LocalDate.now();
+
+        int year = today.getYear();
+        int month = today.getMonthValue();
+
+        Map<String, Double> categoryTotals = new LinkedHashMap<>();
+        double monthlyTotal = 0;
+
+        for (Expense expense : expenses) {
+
+            LocalDate expenseDate = expense.getDate();
+
+            if (expenseDate.getYear() == year
+                    && expenseDate.getMonthValue() == month) {
+
+                String category = expense.getCategory();
+
+                categoryTotals.put(
+                    category,
+                    categoryTotals.getOrDefault(category, 0.0)
+                        + expense.getAmount()
+                );
+
+                monthlyTotal += expense.getAmount();
+            }
+        }
+
+        // Display the month as a readable name, such as October 2026.
+        String monthName = Month.of(month).name();
+        monthName = monthName.substring(0, 1)
+                + monthName.substring(1).toLowerCase();
+
+        System.out.println("\n===== MONTHLY SPENDING REPORT =====");
+        System.out.println("Month: " + monthName + " " + year);
+
+        if (categoryTotals.isEmpty()) {
+            System.out.println("No expenses recorded for this month.");
+            return;
+        }
+
+        System.out.println("\nSpending by category:");
+
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+            System.out.println(
+                entry.getKey() + ": Rs. " + entry.getValue()
+            );
+        }
+
+        System.out.println("\nTotal spending this month: Rs. " + monthlyTotal);
+    }
+
+    // Save expenses to the file
+    private static void saveExpenses() {
 
         try {
             ExpenseStorage.saveExpenses(expenses);
-
-            System.out.println(
-                "Expenses saved successfully!"
-            );
-
         } catch (IOException e) {
-            System.out.println(
-                "Error saving expenses: " + e.getMessage()
-            );
+            System.out.println("Could not save expenses: " + e.getMessage());
         }
     }
-// Calculates spending for a selected month and year.
-static void monthlySpendingReport() {
-
-    // A report cannot be generated if there are no expenses.
-    if (expenses.isEmpty()) {
-        System.out.println("No expenses available for analysis.");
-        return;
-    }
-
-    Scanner reportScanner = new Scanner(System.in);
-
-    int year;
-    int month;
-
-    // Ask for the year.
-    System.out.print("Enter year (e.g., 2026): ");
-
-    if (!reportScanner.hasNextInt()) {
-        System.out.println("Invalid year. Please enter a number.");
-        reportScanner.nextLine();
-        return;
-    }
-
-    year = reportScanner.nextInt();
-
-    // Ask for the month.
-    System.out.print("Enter month (1-12): ");
-
-    if (!reportScanner.hasNextInt()) {
-        System.out.println("Invalid month. Please enter a number.");
-        reportScanner.nextLine();
-        return;
-    }
-
-    month = reportScanner.nextInt();
-
-    // Validate the year and month.
-    if (year < 1 || month < 1 || month > 12) {
-        System.out.println("Invalid year or month.");
-        return;
-    }
-
-    // Store category totals for the selected month.
-    Map<String, Double> categoryTotals = new LinkedHashMap<>();
-
-    double monthlyTotal = 0;
-
-    // Examine every expense.
-    for (Expense expense : expenses) {
-
-        // Include only expenses matching the selected year and month.
-        if (expense.getDate().getYear() == year
-                && expense.getDate().getMonthValue() == month) {
-
-            String category = expense.getCategory();
-            double amount = expense.getAmount();
-
-            double previousTotal =
-                categoryTotals.getOrDefault(category, 0.0);
-
-            categoryTotals.put(
-                category,
-                previousTotal + amount
-            );
-
-            monthlyTotal += amount;
-        }
-    }
-
-    // Display the report heading.
-    System.out.println("\n========== MONTHLY SPENDING REPORT ==========");
-
-    System.out.println("Month: " + month + "/" + year);
-
-    if (categoryTotals.isEmpty()) {
-        System.out.println("No expenses found for this month.");
-        return;
-    }
-
-    // Display spending for each category.
-    for (Map.Entry<String, Double> entry
-            : categoryTotals.entrySet()) {
-
-        System.out.printf(
-            "%s: Rs. %.2f%n",
-            entry.getKey(),
-            entry.getValue()
-        );
-    }
-
-    // Display the total spending for the selected month.
-    System.out.printf(
-        "Total Spending: Rs. %.2f%n",
-        monthlyTotal
-    );
-}
 }
