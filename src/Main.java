@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -31,8 +32,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 11) {
-
+        while (choice != 12) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -44,12 +44,13 @@ public class Main {
             System.out.println("8. Set Monthly Budget");
             System.out.println("9. View Monthly Budget");
             System.out.println("10. Search Expenses");
-            System.out.println("11. Exit");
+            System.out.println("11. Sort Expenses");
+            System.out.println("12. Exit");
 
             System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
-                System.out.println("Invalid input. Enter a number from 1 to 11.");
+                System.out.println("Invalid input. Enter a number from 1 to 12.");
                 scanner.nextLine();
                 continue;
             }
@@ -89,10 +90,13 @@ public class Main {
                     searchExpenses();
                     break;
                 case 11:
+                    sortExpenses();
+                    break;
+                case 12:
                     System.out.println("Thank you for using Expense Analyzer!");
                     break;
                 default:
-                    System.out.println("Invalid choice. Please select 1-11.");
+                    System.out.println("Invalid choice. Please select 1-12.");
             }
         }
 
@@ -101,7 +105,6 @@ public class Main {
 
     // Add a new expense.
     private static void addExpense() {
-
         System.out.print("Enter expense name: ");
         String name = scanner.nextLine().trim();
 
@@ -134,18 +137,15 @@ public class Main {
             return;
         }
 
-        Expense expense = new Expense(name, category, amount);
-        expenses.add(expense);
-
+        expenses.add(new Expense(name, category, amount));
         saveExpenses();
 
         System.out.println("Expense added successfully!");
         showBudgetWarning();
     }
 
-    // Display all recorded expenses.
+    // Display all expenses.
     private static void viewExpenses() {
-
         if (expenses.isEmpty()) {
             System.out.println("No expenses found.");
             return;
@@ -164,9 +164,8 @@ public class Main {
         }
     }
 
-    // Calculate total spending across all recorded expenses.
+    // Calculate total spending.
     private static void viewTotalSpending() {
-
         double total = 0.0;
 
         for (Expense expense : expenses) {
@@ -176,9 +175,8 @@ public class Main {
         System.out.printf("Total Spending: Rs. %.2f%n", total);
     }
 
-    // Calculate spending for each category.
+    // Calculate spending by category.
     private static void categoryAnalysis() {
-
         if (expenses.isEmpty()) {
             System.out.println("No expenses available for analysis.");
             return;
@@ -207,9 +205,8 @@ public class Main {
         }
     }
 
-    // Search expenses by name or category.
+    // Search by expense name or category.
     private static void searchExpenses() {
-
         System.out.println("\n===== SEARCH EXPENSES =====");
         System.out.print("Enter an expense name or category to search: ");
 
@@ -225,7 +222,6 @@ public class Main {
         double matchingTotal = 0.0;
 
         for (Expense expense : expenses) {
-
             boolean nameMatches =
                 expense.getName().toLowerCase().contains(searchText);
 
@@ -233,16 +229,12 @@ public class Main {
                 expense.getCategory().toLowerCase().contains(searchText);
 
             if (nameMatches || categoryMatches) {
-
                 matchCount++;
 
                 System.out.println("\nMatch #" + matchCount);
                 System.out.println("Name: " + expense.getName());
                 System.out.println("Category: " + expense.getCategory());
-                System.out.printf(
-                    "Amount: Rs. %.2f%n",
-                    expense.getAmount()
-                );
+                System.out.printf("Amount: Rs. %.2f%n", expense.getAmount());
                 System.out.println("Date: " + expense.getDate());
 
                 matchingTotal += expense.getAmount();
@@ -261,16 +253,80 @@ public class Main {
         }
     }
 
-    // Edit an expense while preserving its original date.
-    private static void editExpense() {
+    // Sort expenses without changing their saved order.
+    private static void sortExpenses() {
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses available to sort.");
+            return;
+        }
 
+        System.out.println("\n===== SORT EXPENSES =====");
+        System.out.println("1. Amount: Lowest to Highest");
+        System.out.println("2. Amount: Highest to Lowest");
+        System.out.println("3. Date: Newest First");
+        System.out.print("Choose a sorting option: ");
+
+        if (!scanner.hasNextInt()) {
+            System.out.println("Invalid input. Please enter 1, 2, or 3.");
+            scanner.nextLine();
+            return;
+        }
+
+        int sortChoice = scanner.nextInt();
+        scanner.nextLine();
+
+        // Create a copy so the original list remains unchanged.
+        ArrayList<Expense> sortedExpenses = new ArrayList<>(expenses);
+
+        switch (sortChoice) {
+            case 1:
+                sortedExpenses.sort(
+                    Comparator.comparingDouble(Expense::getAmount)
+                );
+                break;
+
+            case 2:
+                sortedExpenses.sort(
+                    Comparator.comparingDouble(Expense::getAmount).reversed()
+                );
+                break;
+
+            case 3:
+                sortedExpenses.sort(
+                    Comparator.comparing(Expense::getDate).reversed()
+                );
+                break;
+
+            default:
+                System.out.println(
+                    "Invalid sorting option. Choose 1, 2, or 3."
+                );
+                return;
+        }
+
+        System.out.println("\n===== SORTED EXPENSES =====");
+
+        for (int i = 0; i < sortedExpenses.size(); i++) {
+            Expense expense = sortedExpenses.get(i);
+
+            System.out.println("\nExpense #" + (i + 1));
+            System.out.println("Name: " + expense.getName());
+            System.out.println("Category: " + expense.getCategory());
+            System.out.printf("Amount: Rs. %.2f%n", expense.getAmount());
+            System.out.println("Date: " + expense.getDate());
+        }
+
+        System.out.println("\nSorting completed successfully!");
+    }
+
+    // Edit an expense while preserving its date.
+    private static void editExpense() {
         if (expenses.isEmpty()) {
             System.out.println("No expenses available to edit.");
             return;
         }
 
         viewExpenses();
-
         System.out.print("\nEnter the expense number to edit: ");
 
         if (!scanner.hasNextInt()) {
@@ -329,7 +385,6 @@ public class Main {
         );
 
         expenses.set(number - 1, updatedExpense);
-
         saveExpenses();
 
         System.out.println("Expense updated successfully!");
@@ -338,14 +393,12 @@ public class Main {
 
     // Delete an expense.
     private static void deleteExpense() {
-
         if (expenses.isEmpty()) {
             System.out.println("No expenses available to delete.");
             return;
         }
 
         viewExpenses();
-
         System.out.print("\nEnter the expense number to delete: ");
 
         if (!scanner.hasNextInt()) {
@@ -363,15 +416,13 @@ public class Main {
         }
 
         Expense removedExpense = expenses.remove(number - 1);
-
         saveExpenses();
 
         System.out.println("Deleted expense: " + removedExpense.getName());
     }
 
-    // Generate a spending report for the current month.
+    // Generate the current month's spending report.
     private static void monthlySpendingReport() {
-
         LocalDate today = LocalDate.now();
         int year = today.getYear();
         int month = today.getMonthValue();
@@ -380,12 +431,10 @@ public class Main {
         double monthlyTotal = 0.0;
 
         for (Expense expense : expenses) {
-
             LocalDate expenseDate = expense.getDate();
 
             if (expenseDate.getYear() == year
                     && expenseDate.getMonthValue() == month) {
-
                 String category = expense.getCategory();
 
                 categoryTotals.put(
@@ -400,7 +449,7 @@ public class Main {
 
         String monthName = Month.of(month).name();
         monthName = monthName.substring(0, 1)
-                + monthName.substring(1).toLowerCase();
+            + monthName.substring(1).toLowerCase();
 
         System.out.println("\n===== MONTHLY SPENDING REPORT =====");
         System.out.println("Month: " + monthName + " " + year);
@@ -428,7 +477,6 @@ public class Main {
 
     // Set or update the monthly budget.
     private static void setMonthlyBudget() {
-
         System.out.println("\n===== SET MONTHLY BUDGET =====");
         System.out.print("Enter your monthly budget in Rs.: ");
 
@@ -457,9 +505,8 @@ public class Main {
         viewMonthlyBudget();
     }
 
-    // Display budget, current-month spending, and status.
+    // Display budget, spending, and budget status.
     private static void viewMonthlyBudget() {
-
         System.out.println("\n===== MONTHLY BUDGET TRACKER =====");
 
         if (monthlyBudget <= 0) {
@@ -509,14 +556,12 @@ public class Main {
         }
     }
 
-    // Calculate spending only for the current month and year.
+    // Calculate spending for the current month.
     private static double getCurrentMonthSpending() {
-
         LocalDate today = LocalDate.now();
         double total = 0.0;
 
         for (Expense expense : expenses) {
-
             LocalDate expenseDate = expense.getDate();
 
             if (expenseDate.getYear() == today.getYear()
@@ -530,7 +575,6 @@ public class Main {
 
     // Display a warning after adding or editing an expense.
     private static void showBudgetWarning() {
-
         if (monthlyBudget <= 0) {
             return;
         }
@@ -557,9 +601,8 @@ public class Main {
         }
     }
 
-    // Save expenses using the existing storage class.
+    // Save expenses.
     private static void saveExpenses() {
-
         try {
             ExpenseStorage.saveExpenses(expenses);
         } catch (IOException e) {
@@ -567,14 +610,11 @@ public class Main {
         }
     }
 
-    // Save the budget so it survives application restarts.
+    // Save the monthly budget.
     private static void saveMonthlyBudget() {
-
         try (PrintWriter writer = new PrintWriter(
                 new FileWriter(BUDGET_FILE))) {
-
             writer.println(monthlyBudget);
-
         } catch (IOException e) {
             System.out.println(
                 "Could not save the monthly budget: " + e.getMessage()
@@ -582,9 +622,8 @@ public class Main {
         }
     }
 
-    // Load the saved budget when the program starts.
+    // Load the saved monthly budget.
     private static void loadMonthlyBudget() {
-
         File file = new File(BUDGET_FILE);
 
         if (!file.exists()) {
@@ -594,7 +633,6 @@ public class Main {
 
         try (BufferedReader reader =
                 new BufferedReader(new FileReader(file))) {
-
             String line = reader.readLine();
 
             if (line != null) {
@@ -613,7 +651,6 @@ public class Main {
                     );
                 }
             }
-
         } catch (IOException | NumberFormatException e) {
             System.out.println(
                 "Could not load the monthly budget: " + e.getMessage()
