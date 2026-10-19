@@ -13,21 +13,13 @@ import java.util.Scanner;
 
 public class Main {
 
-    // Stores expenses while the application is running.
     private static ArrayList<Expense> expenses = new ArrayList<>();
-
-    // Reads input from the keyboard.
     private static final Scanner scanner = new Scanner(System.in);
-
-    // Stores the user's monthly budget.
     private static double monthlyBudget = 0.0;
-
-    // File used to save the monthly budget.
     private static final String BUDGET_FILE = "budget.txt";
 
     public static void main(String[] args) {
 
-        // Load previously saved expenses.
         try {
             expenses = ExpenseStorage.loadExpenses();
             System.out.println("Previous expenses loaded successfully.");
@@ -35,13 +27,11 @@ public class Main {
             System.out.println("Could not load expenses: " + e.getMessage());
         }
 
-        // Load the saved budget.
         loadMonthlyBudget();
 
         int choice = 0;
 
-        // Continue displaying the menu until the user exits.
-        while (choice != 10) {
+        while (choice != 11) {
 
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
@@ -53,13 +43,13 @@ public class Main {
             System.out.println("7. Monthly Spending Report");
             System.out.println("8. Set Monthly Budget");
             System.out.println("9. View Monthly Budget");
-            System.out.println("10. Exit");
+            System.out.println("10. Search Expenses");
+            System.out.println("11. Exit");
 
             System.out.print("Enter your choice: ");
 
-            // Validate menu input.
             if (!scanner.hasNextInt()) {
-                System.out.println("Invalid input. Enter a number from 1 to 10.");
+                System.out.println("Invalid input. Enter a number from 1 to 11.");
                 scanner.nextLine();
                 continue;
             }
@@ -67,51 +57,42 @@ public class Main {
             choice = scanner.nextInt();
             scanner.nextLine();
 
-            // Execute the selected menu operation.
             switch (choice) {
-
                 case 1:
                     addExpense();
                     break;
-
                 case 2:
                     viewExpenses();
                     break;
-
                 case 3:
                     viewTotalSpending();
                     break;
-
                 case 4:
                     categoryAnalysis();
                     break;
-
                 case 5:
                     editExpense();
                     break;
-
                 case 6:
                     deleteExpense();
                     break;
-
                 case 7:
                     monthlySpendingReport();
                     break;
-
                 case 8:
                     setMonthlyBudget();
                     break;
-
                 case 9:
                     viewMonthlyBudget();
                     break;
-
                 case 10:
+                    searchExpenses();
+                    break;
+                case 11:
                     System.out.println("Thank you for using Expense Analyzer!");
                     break;
-
                 default:
-                    System.out.println("Invalid choice. Please select 1-10.");
+                    System.out.println("Invalid choice. Please select 1-11.");
             }
         }
 
@@ -153,15 +134,12 @@ public class Main {
             return;
         }
 
-        // Create an expense with today's date.
         Expense expense = new Expense(name, category, amount);
         expenses.add(expense);
 
         saveExpenses();
 
         System.out.println("Expense added successfully!");
-
-        // Warn the user if spending approaches or exceeds the budget.
         showBudgetWarning();
     }
 
@@ -176,7 +154,6 @@ public class Main {
         System.out.println("\n===== ALL EXPENSES =====");
 
         for (int i = 0; i < expenses.size(); i++) {
-
             Expense expense = expenses.get(i);
 
             System.out.println("\nExpense #" + (i + 1));
@@ -210,7 +187,6 @@ public class Main {
         Map<String, Double> categoryTotals = new LinkedHashMap<>();
 
         for (Expense expense : expenses) {
-
             String category = expense.getCategory();
 
             categoryTotals.put(
@@ -223,11 +199,64 @@ public class Main {
         System.out.println("\n===== CATEGORY ANALYSIS =====");
 
         for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-
             System.out.printf(
                 "%s: Rs. %.2f%n",
                 entry.getKey(),
                 entry.getValue()
+            );
+        }
+    }
+
+    // Search expenses by name or category.
+    private static void searchExpenses() {
+
+        System.out.println("\n===== SEARCH EXPENSES =====");
+        System.out.print("Enter an expense name or category to search: ");
+
+        String query = scanner.nextLine().trim();
+
+        if (query.isBlank()) {
+            System.out.println("Search text cannot be empty.");
+            return;
+        }
+
+        String searchText = query.toLowerCase();
+        int matchCount = 0;
+        double matchingTotal = 0.0;
+
+        for (Expense expense : expenses) {
+
+            boolean nameMatches =
+                expense.getName().toLowerCase().contains(searchText);
+
+            boolean categoryMatches =
+                expense.getCategory().toLowerCase().contains(searchText);
+
+            if (nameMatches || categoryMatches) {
+
+                matchCount++;
+
+                System.out.println("\nMatch #" + matchCount);
+                System.out.println("Name: " + expense.getName());
+                System.out.println("Category: " + expense.getCategory());
+                System.out.printf(
+                    "Amount: Rs. %.2f%n",
+                    expense.getAmount()
+                );
+                System.out.println("Date: " + expense.getDate());
+
+                matchingTotal += expense.getAmount();
+            }
+        }
+
+        if (matchCount == 0) {
+            System.out.println("No expenses matched: " + query);
+        } else {
+            System.out.println("\n===== SEARCH SUMMARY =====");
+            System.out.println("Matching expenses: " + matchCount);
+            System.out.printf(
+                "Total of matching expenses: Rs. %.2f%n",
+                matchingTotal
             );
         }
     }
@@ -292,7 +321,6 @@ public class Main {
             return;
         }
 
-        // Keep the original date when editing the expense.
         Expense updatedExpense = new Expense(
             name,
             category,
@@ -305,7 +333,6 @@ public class Main {
         saveExpenses();
 
         System.out.println("Expense updated successfully!");
-
         showBudgetWarning();
     }
 
@@ -346,7 +373,6 @@ public class Main {
     private static void monthlySpendingReport() {
 
         LocalDate today = LocalDate.now();
-
         int year = today.getYear();
         int month = today.getMonthValue();
 
@@ -357,7 +383,6 @@ public class Main {
 
             LocalDate expenseDate = expense.getDate();
 
-            // Include only expenses from this month and year.
             if (expenseDate.getYear() == year
                     && expenseDate.getMonthValue() == month) {
 
@@ -373,9 +398,7 @@ public class Main {
             }
         }
 
-        // Convert the month number into a readable month name.
         String monthName = Month.of(month).name();
-
         monthName = monthName.substring(0, 1)
                 + monthName.substring(1).toLowerCase();
 
@@ -390,7 +413,6 @@ public class Main {
         System.out.println("\nSpending by category:");
 
         for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-
             System.out.printf(
                 "%s: Rs. %.2f%n",
                 entry.getKey(),
@@ -408,7 +430,6 @@ public class Main {
     private static void setMonthlyBudget() {
 
         System.out.println("\n===== SET MONTHLY BUDGET =====");
-
         System.out.print("Enter your monthly budget in Rs.: ");
 
         if (!scanner.hasNextDouble()) {
@@ -426,8 +447,6 @@ public class Main {
         }
 
         monthlyBudget = budget;
-
-        // Persist the budget to a file.
         saveMonthlyBudget();
 
         System.out.printf(
@@ -438,7 +457,7 @@ public class Main {
         viewMonthlyBudget();
     }
 
-    // Display budget, current-month spending, and an informative status.
+    // Display budget, current-month spending, and status.
     private static void viewMonthlyBudget() {
 
         System.out.println("\n===== MONTHLY BUDGET TRACKER =====");
@@ -450,25 +469,14 @@ public class Main {
         }
 
         double monthlyTotal = getCurrentMonthSpending();
-
         double remaining = monthlyBudget - monthlyTotal;
         double percentageUsed = (monthlyTotal / monthlyBudget) * 100.0;
 
-        System.out.printf(
-            "Monthly Budget: Rs. %.2f%n",
-            monthlyBudget
-        );
-
-        System.out.printf(
-            "Total Spent:    Rs. %.2f%n",
-            monthlyTotal
-        );
+        System.out.printf("Monthly Budget: Rs. %.2f%n", monthlyBudget);
+        System.out.printf("Total Spent:    Rs. %.2f%n", monthlyTotal);
 
         if (remaining >= 0) {
-            System.out.printf(
-                "Remaining:      Rs. %.2f%n",
-                remaining
-            );
+            System.out.printf("Remaining:      Rs. %.2f%n", remaining);
         } else {
             System.out.printf(
                 "Overspending:   Rs. %.2f%n",
@@ -476,36 +484,25 @@ public class Main {
             );
         }
 
-        System.out.printf(
-            "Budget Used:    %.1f%%%n",
-            percentageUsed
-        );
+        System.out.printf("Budget Used:    %.1f%%%n", percentageUsed);
 
-        // Show the most important status first.
         if (monthlyTotal > monthlyBudget) {
-
             System.out.println(
                 "\nALERT: You have exceeded your monthly budget!"
             );
-
             System.out.printf(
                 "You spent Rs. %.2f more than your budget.%n",
                 monthlyTotal - monthlyBudget
             );
-
         } else if (percentageUsed >= 80.0) {
-
             System.out.println(
                 "\nWARNING: You have used most of your monthly budget!"
             );
-
             System.out.printf(
                 "Only Rs. %.2f remains in your budget.%n",
                 remaining
             );
-
         } else {
-
             System.out.println(
                 "\nSTATUS: Your spending is under control."
             );
@@ -516,7 +513,6 @@ public class Main {
     private static double getCurrentMonthSpending() {
 
         LocalDate today = LocalDate.now();
-
         double total = 0.0;
 
         for (Expense expense : expenses) {
@@ -525,7 +521,6 @@ public class Main {
 
             if (expenseDate.getYear() == today.getYear()
                     && expenseDate.getMonthValue() == today.getMonthValue()) {
-
                 total += expense.getAmount();
             }
         }
@@ -541,26 +536,20 @@ public class Main {
         }
 
         double total = getCurrentMonthSpending();
-
         double percentageUsed = (total / monthlyBudget) * 100.0;
 
         if (total > monthlyBudget) {
-
             System.out.println(
                 "\nALERT: You have exceeded your monthly budget!"
             );
-
             System.out.printf(
                 "Overspending: Rs. %.2f%n",
                 total - monthlyBudget
             );
-
         } else if (percentageUsed >= 80.0) {
-
             System.out.println(
                 "\nWARNING: You have used most of your monthly budget!"
             );
-
             System.out.printf(
                 "Remaining budget: Rs. %.2f%n",
                 monthlyBudget - total
@@ -609,20 +598,16 @@ public class Main {
             String line = reader.readLine();
 
             if (line != null) {
-
                 double savedBudget = Double.parseDouble(line.trim());
 
                 if (Double.isFinite(savedBudget) && savedBudget > 0) {
-
                     monthlyBudget = savedBudget;
 
                     System.out.printf(
                         "Saved monthly budget loaded: Rs. %.2f%n",
                         monthlyBudget
                     );
-
                 } else {
-
                     System.out.println(
                         "Saved budget is invalid. Please set a new budget."
                     );
@@ -630,7 +615,6 @@ public class Main {
             }
 
         } catch (IOException | NumberFormatException e) {
-
             System.out.println(
                 "Could not load the monthly budget: " + e.getMessage()
             );
