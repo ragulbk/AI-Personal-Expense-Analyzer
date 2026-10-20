@@ -33,7 +33,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 13) {
+        while (choice != 14) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -47,13 +47,14 @@ public class Main {
             System.out.println("10. Search Expenses");
             System.out.println("11. Sort Expenses");
             System.out.println("12. Export Expenses to CSV");
-            System.out.println("13. Exit");
+            System.out.println("13. Smart Spending Insights");
+            System.out.println("14. Exit");
 
             System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 13."
+                    "Invalid input. Enter a number from 1 to 14."
                 );
                 scanner.nextLine();
                 continue;
@@ -112,6 +113,10 @@ public class Main {
                     break;
 
                 case 13:
+                    smartSpendingInsights();
+                    break;
+
+                case 14:
                     System.out.println(
                         "Thank you for using Expense Analyzer!"
                     );
@@ -119,12 +124,103 @@ public class Main {
 
                 default:
                     System.out.println(
-                        "Invalid choice. Please select 1-13."
+                        "Invalid choice. Please select 1-14."
                     );
             }
         }
 
         scanner.close();
+    }
+
+    // Analyze spending patterns and provide rule-based recommendations.
+    private static void smartSpendingInsights() {
+
+        System.out.println("\n===== SMART SPENDING INSIGHTS =====");
+
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses available for analysis.");
+            return;
+        }
+
+        Map<String, Double> categoryTotals = new LinkedHashMap<>();
+        double totalSpending = 0.0;
+
+        for (Expense expense : expenses) {
+            String category = expense.getCategory();
+            categoryTotals.put(
+                category,
+                categoryTotals.getOrDefault(category, 0.0)
+                    + expense.getAmount()
+            );
+            totalSpending += expense.getAmount();
+        }
+
+        String highestCategory = "";
+        double highestAmount = -1.0;
+
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+            if (entry.getValue() > highestAmount) {
+                highestAmount = entry.getValue();
+                highestCategory = entry.getKey();
+            }
+        }
+
+        System.out.printf("Total spending: Rs. %.2f%n", totalSpending);
+        System.out.println("\nSpending by category:");
+
+        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+            double percentage = entry.getValue() / totalSpending * 100.0;
+            System.out.printf(
+                "%s: Rs. %.2f (%.1f%% of total)%n",
+                entry.getKey(), entry.getValue(), percentage
+            );
+        }
+
+        System.out.printf(
+            "\nHighest spending category: %s (Rs. %.2f)%n",
+            highestCategory, highestAmount
+        );
+
+        System.out.println("\n===== RECOMMENDATION =====");
+        System.out.println(
+            "Your biggest expense category is " + highestCategory + "."
+        );
+        System.out.println(
+            "Review your " + highestCategory
+                + " expenses to identify possible savings."
+        );
+
+        if (monthlyBudget > 0.0) {
+            double currentMonthSpending = getCurrentMonthSpending();
+            double budgetPercent = currentMonthSpending / monthlyBudget * 100.0;
+
+            System.out.printf(
+                "This month's spending: Rs. %.2f of your Rs. %.2f budget (%.1f%%).%n",
+                currentMonthSpending, monthlyBudget, budgetPercent
+            );
+
+            if (currentMonthSpending > monthlyBudget) {
+                System.out.printf(
+                    "Warning: You are over budget by Rs. %.2f.%n",
+                    currentMonthSpending - monthlyBudget
+                );
+                System.out.println(
+                    "Recommendation: Reduce non-essential spending for the rest of the month."
+                );
+            } else if (budgetPercent >= 80.0) {
+                System.out.println(
+                    "Your budget is nearly used. Consider limiting non-essential purchases."
+                );
+            } else {
+                System.out.println(
+                    "Your spending is currently within budget. Keep tracking your expenses."
+                );
+            }
+        } else {
+            System.out.println(
+                "Set a monthly budget to receive budget-based recommendations."
+            );
+        }
     }
 
     // Add a new expense.
