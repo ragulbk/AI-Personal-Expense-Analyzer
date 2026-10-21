@@ -715,62 +715,128 @@ default:
         );
     }
 
-    // Generate the current month's spending report.
-    private static void monthlySpendingReport() {
+    // Generate a detailed spending report for a selected month and year.
+private static void monthlySpendingReport() {
 
-        LocalDate today = LocalDate.now();
-        int year = today.getYear();
-        int month = today.getMonthValue();
+    System.out.println("\n===== MONTHLY EXPENSE REPORT =====");
 
-        Map<String, Double> categoryTotals = new LinkedHashMap<>();
-        double monthlyTotal = 0.0;
+    System.out.print("Enter year (e.g. 2026): ");
 
-        for (Expense expense : expenses) {
-            LocalDate expenseDate = expense.getDate();
+    if (!scanner.hasNextInt()) {
+        System.out.println("Please enter a valid year.");
+        scanner.nextLine();
+        return;
+    }
 
-            if (expenseDate.getYear() == year
-                    && expenseDate.getMonthValue() == month) {
+    int year = scanner.nextInt();
+    scanner.nextLine();
 
-                String category = expense.getCategory();
+    if (year < 1900 || year > 9999) {
+        System.out.println("Please enter a year between 1900 and 9999.");
+        return;
+    }
 
-                categoryTotals.put(
-                    category,
-                    categoryTotals.getOrDefault(category, 0.0)
-                        + expense.getAmount()
-                );
+    System.out.print("Enter month (1 = January, 12 = December): ");
 
-                monthlyTotal += expense.getAmount();
+    if (!scanner.hasNextInt()) {
+        System.out.println("Please enter a valid month.");
+        scanner.nextLine();
+        return;
+    }
+
+    int month = scanner.nextInt();
+    scanner.nextLine();
+
+    if (month < 1 || month > 12) {
+        System.out.println("Month must be between 1 and 12.");
+        return;
+    }
+
+    Map<String, Double> categoryTotals = new LinkedHashMap<>();
+
+    double monthlyTotal = 0.0;
+    int expenseCount = 0;
+
+    Expense highestExpense = null;
+
+    for (Expense expense : expenses) {
+
+        LocalDate expenseDate = expense.getDate();
+
+        if (expenseDate.getYear() == year
+                && expenseDate.getMonthValue() == month) {
+
+            String category = expense.getCategory();
+
+            categoryTotals.put(
+                category,
+                categoryTotals.getOrDefault(category, 0.0)
+                    + expense.getAmount()
+            );
+
+            monthlyTotal += expense.getAmount();
+            expenseCount++;
+
+            if (highestExpense == null
+                    || expense.getAmount() > highestExpense.getAmount()) {
+                highestExpense = expense;
             }
         }
+    }
 
-        String monthName = Month.of(month).name();
-        monthName = monthName.substring(0, 1)
-            + monthName.substring(1).toLowerCase();
+    String monthName = Month.of(month).name();
+    monthName = monthName.substring(0, 1)
+        + monthName.substring(1).toLowerCase();
 
-        System.out.println("\n===== MONTHLY SPENDING REPORT =====");
-        System.out.println("Month: " + monthName + " " + year);
+    System.out.println("\n===== REPORT SUMMARY =====");
+    System.out.println("Month: " + monthName + " " + year);
 
-        if (categoryTotals.isEmpty()) {
-            System.out.println("No expenses recorded for this month.");
-            return;
-        }
+    if (expenseCount == 0) {
+        System.out.println("No expenses recorded for this month.");
+        return;
+    }
 
-        System.out.println("\nSpending by category:");
+    System.out.printf(
+        "Total spent: Rs. %.2f%n",
+        monthlyTotal
+    );
 
-        for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
-            System.out.printf(
-                "%s: Rs. %.2f%n",
-                entry.getKey(),
-                entry.getValue()
-            );
-        }
+    System.out.println("Number of expenses: " + expenseCount);
+
+    System.out.printf(
+        "Average expense: Rs. %.2f%n",
+        monthlyTotal / expenseCount
+    );
+
+    System.out.println("\n===== HIGHEST EXPENSE =====");
+
+    System.out.println("Name: " + highestExpense.getName());
+    System.out.println("Category: " + highestExpense.getCategory());
+
+    System.out.printf(
+        "Amount: Rs. %.2f%n",
+        highestExpense.getAmount()
+    );
+
+    System.out.println("Date: " + highestExpense.getDate());
+
+    System.out.println("\n===== CATEGORY BREAKDOWN =====");
+
+    for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+
+        double percentage =
+            entry.getValue() / monthlyTotal * 100.0;
 
         System.out.printf(
-            "%nTotal spending this month: Rs. %.2f%n",
-            monthlyTotal
+            "%s: Rs. %.2f (%.1f%%)%n",
+            entry.getKey(),
+            entry.getValue(),
+            percentage
         );
     }
 
+    System.out.println("\nMonthly report generated successfully!");
+}
     // Set or update the monthly budget.
     private static void setMonthlyBudget() {
 
