@@ -33,7 +33,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 14) {
+        while (choice != 15) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -48,7 +48,8 @@ public class Main {
             System.out.println("11. Sort Expenses");
             System.out.println("12. Export Expenses to CSV");
             System.out.println("13. Smart Spending Insights");
-            System.out.println("14. Exit");
+System.out.println("14. Spending Alerts");
+            System.out.println("15. Exit");
 
             System.out.print("Enter your choice: ");
 
@@ -116,16 +117,20 @@ public class Main {
                     smartSpendingInsights();
                     break;
 
-                case 14:
-                    System.out.println(
-                        "Thank you for using Expense Analyzer!"
-                    );
-                    break;
+             case 14:
+    spendingAlerts();
+    break;
 
-                default:
-                    System.out.println(
-                        "Invalid choice. Please select 1-14."
-                    );
+case 15:
+    System.out.println(
+        "Thank you for using Expense Analyzer!"
+    );
+    break;
+
+default:
+    System.out.println(
+        "Invalid choice. Please select 1-15."
+    );
             }
         }
 
@@ -222,6 +227,66 @@ public class Main {
             );
         }
     }
+    // Identify unusually large expenses and provide recommendations.
+    private static void spendingAlerts() {
+
+        System.out.println("\n===== SPENDING ALERTS =====");
+
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses available to analyze.");
+            return;
+        }
+
+        final double threshold = 500.0;
+        boolean alertFound = false;
+
+        System.out.printf(
+            "Alert threshold: Rs. %.2f%n",
+            threshold
+        );
+
+        for (Expense expense : expenses) {
+
+            if (expense.getAmount() >= threshold) {
+
+                alertFound = true;
+
+                System.out.println(
+                    "\nUnusually large expense detected!"
+                );
+
+                System.out.println(
+                    "Expense: " + expense.getName()
+                );
+
+                System.out.println(
+                    "Category: " + expense.getCategory()
+                );
+
+                System.out.printf(
+                    "Amount: Rs. %.2f%n",
+                    expense.getAmount()
+                );
+
+                System.out.println(
+                    "Date: " + expense.getDate()
+                );
+
+                System.out.println("Recommendation:");
+
+                System.out.println(
+                    "Review this expense to identify possible savings."
+                );
+            }
+        }
+
+        if (!alertFound) {
+            System.out.println(
+                "No unusually large expenses found. Keep tracking your spending!"
+            );
+        }
+    }
+
 
     // Add a new expense.
     private static void addExpense() {
