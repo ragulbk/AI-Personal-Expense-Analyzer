@@ -33,7 +33,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 15) {
+        while (choice != 16) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -49,13 +49,14 @@ public class Main {
             System.out.println("12. Export Expenses to CSV");
             System.out.println("13. Smart Spending Insights");
 System.out.println("14. Spending Alerts");
-            System.out.println("15. Exit");
+System.out.println("15. Budget Performance Report");
+            System.out.println("16. Exit");
 
             System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 14."
+                    "Invalid input. Enter a number from 1 to 15."
                 );
                 scanner.nextLine();
                 continue;
@@ -122,14 +123,17 @@ System.out.println("14. Spending Alerts");
     break;
 
 case 15:
+    budgetPerformanceReport();
+    break;
+
+case 16:
     System.out.println(
         "Thank you for using Expense Analyzer!"
     );
     break;
-
 default:
     System.out.println(
-        "Invalid choice. Please select 1-15."
+        "Invalid choice. Please select 1-16."
     );
             }
         }
@@ -867,6 +871,88 @@ private static void monthlySpendingReport() {
 
         viewMonthlyBudget();
     }
+// Compare the monthly budget with actual spending.
+private static void budgetPerformanceReport() {
+
+    System.out.println("\n===== BUDGET PERFORMANCE REPORT =====");
+
+    if (monthlyBudget <= 0) {
+        System.out.println("No monthly budget has been set yet.");
+        System.out.println("Please select option 8 to set your budget.");
+        return;
+    }
+
+    double actualSpending = getCurrentMonthSpending();
+    double remainingBudget = monthlyBudget - actualSpending;
+
+    double budgetUtilization =
+        (actualSpending / monthlyBudget) * 100.0;
+
+    System.out.printf(
+        "Monthly Budget:     Rs. %.2f%n",
+        monthlyBudget
+    );
+
+    System.out.printf(
+        "Actual Spending:    Rs. %.2f%n",
+        actualSpending
+    );
+
+    if (remainingBudget >= 0) {
+        System.out.printf(
+            "Remaining Budget:   Rs. %.2f%n",
+            remainingBudget
+        );
+    } else {
+        System.out.printf(
+            "Overspending:       Rs. %.2f%n",
+            Math.abs(remainingBudget)
+        );
+    }
+
+    System.out.printf(
+        "Budget Utilization: %.1f%%%n",
+        budgetUtilization
+    );
+
+    System.out.println("\n===== STATUS =====");
+
+    if (actualSpending > monthlyBudget) {
+
+        System.out.println("ALERT: You have exceeded your budget!");
+
+        System.out.println("\nRECOMMENDATION:");
+        System.out.println(
+            "Review non-essential expenses and reduce spending."
+        );
+
+    } else if (budgetUtilization >= 80.0) {
+
+        System.out.println(
+            "WARNING: You have used at least 80% of your budget."
+        );
+
+        System.out.println("\nRECOMMENDATION:");
+        System.out.println(
+            "Limit unnecessary purchases for the rest of the month."
+        );
+
+    } else {
+
+        System.out.println(
+            "Your spending is currently within your budget."
+        );
+
+        System.out.println("\nRECOMMENDATION:");
+        System.out.println(
+            "Keep tracking your expenses and maintain good spending habits!"
+        );
+    }
+
+    System.out.println(
+        "\nBudget performance report generated successfully!"
+    );
+}
 
     // Display budget, spending, and budget status.
     private static void viewMonthlyBudget() {
