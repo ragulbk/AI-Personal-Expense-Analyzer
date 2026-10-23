@@ -33,7 +33,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 16) {
+        while (choice != 17) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -50,13 +50,12 @@ public class Main {
             System.out.println("13. Smart Spending Insights");
 System.out.println("14. Spending Alerts");
 System.out.println("15. Budget Performance Report");
-            System.out.println("16. Exit");
-
-            System.out.print("Enter your choice: ");
+System.out.println("16. Expense Statistics Dashboard");
+System.out.println("17. Exit");            System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 15."
+                    "Invalid input. Enter a number from 1 to 16."
                 );
                 scanner.nextLine();
                 continue;
@@ -127,13 +126,17 @@ case 15:
     break;
 
 case 16:
+    expenseStatisticsDashboard();
+    break;
+
+case 17:
     System.out.println(
         "Thank you for using Expense Analyzer!"
     );
     break;
 default:
     System.out.println(
-        "Invalid choice. Please select 1-16."
+        "Invalid choice. Please select 1-17."
     );
             }
         }
@@ -841,8 +844,108 @@ private static void monthlySpendingReport() {
 
     System.out.println("\nMonthly report generated successfully!");
 }
+// Display overall expense statistics.
+private static void expenseStatisticsDashboard() {
+
+    System.out.println("\n===== EXPENSE STATISTICS DASHBOARD =====");
+
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available for analysis.");
+        System.out.println("Add some expenses to view your statistics.");
+        return;
+    }
+
+    double totalSpending = 0.0;
+
+    Expense largestExpense = expenses.get(0);
+    Expense smallestExpense = expenses.get(0);
+
+    Map<String, Integer> categoryCounts = new LinkedHashMap<>();
+
+    for (Expense expense : expenses) {
+
+        totalSpending += expense.getAmount();
+
+        if (expense.getAmount() > largestExpense.getAmount()) {
+            largestExpense = expense;
+        }
+
+        if (expense.getAmount() < smallestExpense.getAmount()) {
+            smallestExpense = expense;
+        }
+
+        String category = expense.getCategory();
+
+        categoryCounts.put(
+            category,
+            categoryCounts.getOrDefault(category, 0) + 1
+        );
+    }
+
+    double averageExpense = totalSpending / expenses.size();
+
+    String mostFrequentCategory = "";
+    int highestCategoryCount = 0;
+
+    for (Map.Entry<String, Integer> entry : categoryCounts.entrySet()) {
+
+        if (entry.getValue() > highestCategoryCount) {
+            highestCategoryCount = entry.getValue();
+            mostFrequentCategory = entry.getKey();
+        }
+    }
+
+    System.out.println("\n===== OVERALL SUMMARY =====");
+    System.out.println("Total Expense Entries: " + expenses.size());
+
+    System.out.printf(
+        "Total Money Spent: Rs. %.2f%n",
+        totalSpending
+    );
+
+    System.out.printf(
+        "Average Expense: Rs. %.2f%n",
+        averageExpense
+    );
+
+    System.out.println("\n===== LARGEST EXPENSE =====");
+    System.out.println("Name: " + largestExpense.getName());
+    System.out.println("Category: " + largestExpense.getCategory());
+
+    System.out.printf(
+        "Amount: Rs. %.2f%n",
+        largestExpense.getAmount()
+    );
+
+    System.out.println("\n===== SMALLEST EXPENSE =====");
+    System.out.println("Name: " + smallestExpense.getName());
+    System.out.println("Category: " + smallestExpense.getCategory());
+
+    System.out.printf(
+        "Amount: Rs. %.2f%n",
+        smallestExpense.getAmount()
+    );
+
+    System.out.println("\n===== MOST FREQUENT CATEGORY =====");
+    System.out.println("Category: " + mostFrequentCategory);
+    System.out.println("Number of expenses: " + highestCategoryCount);
+
+    System.out.println("\n===== CATEGORY FREQUENCY =====");
+
+    for (Map.Entry<String, Integer> entry : categoryCounts.entrySet()) {
+        System.out.printf(
+            "%s: %d expense(s)%n",
+            entry.getKey(),
+            entry.getValue()
+        );
+    }
+
+    System.out.println("\nExpense statistics generated successfully!");
+}
     // Set or update the monthly budget.
-    private static void setMonthlyBudget() {
+
+    private static void setMonthlyBudget() 
+{
 
         System.out.println("\n===== SET MONTHLY BUDGET =====");
         System.out.print("Enter your monthly budget in Rs.: ");
