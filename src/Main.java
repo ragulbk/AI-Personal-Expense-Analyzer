@@ -33,7 +33,7 @@ public class Main {
 
         int choice = 0;
 
-        while (choice != 17) {
+        while (choice != 18) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -51,11 +51,12 @@ public class Main {
 System.out.println("14. Spending Alerts");
 System.out.println("15. Budget Performance Report");
 System.out.println("16. Expense Statistics Dashboard");
-System.out.println("17. Exit");            System.out.print("Enter your choice: ");
+System.out.println("17. Filter Expenses by Date Range");
+System.out.println("18. Exit");           System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 16."
+                    "Invalid input. Enter a number from 1 to 18."
                 );
                 scanner.nextLine();
                 continue;
@@ -130,15 +131,19 @@ case 16:
     break;
 
 case 17:
+    filterExpensesByDateRange();
+    break;
+
+case 18:
     System.out.println(
         "Thank you for using Expense Analyzer!"
     );
     break;
+
 default:
     System.out.println(
         "Invalid choice. Please select 1-17."
-    );
-            }
+    );            }
         }
 
         scanner.close();
@@ -463,8 +468,71 @@ default:
             );
         }
     }
+        
+// NEW DATE-FILTERING METHOD WILL GO HERE
+    // Filter expenses between two dates.
+    private static void filterExpensesByDateRange() {
+        if (expenses.isEmpty()) {
+            System.out.println("No expenses available to filter.");
+            return;
+        }
 
-    // Sort expenses without changing their saved order.
+        System.out.println("\n===== EXPENSE DATE RANGE FILTER =====");
+        System.out.println("Enter dates in yyyy-MM-dd format.");
+        System.out.println("Example: 2026-10-01");
+
+        LocalDate startDate;
+        LocalDate endDate;
+
+        try {
+            System.out.print("Enter start date: ");
+            startDate = LocalDate.parse(scanner.nextLine().trim());
+
+            System.out.print("Enter end date: ");
+            endDate = LocalDate.parse(scanner.nextLine().trim());
+        } catch (java.time.format.DateTimeParseException e) {
+            System.out.println("Invalid date! Please use yyyy-MM-dd format.");
+            return;
+        }
+
+        if (startDate.isAfter(endDate)) {
+            System.out.println("Start date cannot be after the end date.");
+            return;
+        }
+
+        double total = 0;
+        int count = 0;
+
+        System.out.println("\n===== FILTERED EXPENSES =====");
+
+        for (Expense expense : expenses) {
+            LocalDate expenseDate = expense.getDate();
+
+            if (!expenseDate.isBefore(startDate)
+                    && !expenseDate.isAfter(endDate)) {
+
+                System.out.println("------------------------------");
+                System.out.println("Name: " + expense.getName());
+                System.out.println("Category: " + expense.getCategory());
+                System.out.println("Amount: Rs. " + expense.getAmount());
+                System.out.println("Date: " + expense.getDate());
+
+                total += expense.getAmount();
+                count++;
+            }
+        }
+
+        if (count == 0) {
+            System.out.println("No expenses found within this date range.");
+        } else {
+            System.out.println("------------------------------");
+            System.out.println("Number of expenses: " + count);
+            System.out.printf("Total spending: Rs. %.2f%n", total);
+        }
+    }
+
+
+        // Sort expenses without changing their saved order.
     private static void sortExpenses() {
 
         if (expenses.isEmpty()) {
