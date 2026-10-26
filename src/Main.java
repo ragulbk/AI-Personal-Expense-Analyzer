@@ -15,10 +15,14 @@ import java.util.Scanner;
 public class Main {
 
     private static ArrayList<Expense> expenses = new ArrayList<>();
-    private static final Scanner scanner = new Scanner(System.in);
-    private static double monthlyBudget = 0.0;
-    private static final String BUDGET_FILE = "budget.txt";
-    private static final String CSV_FILE = "expenses.csv";
+private static final Scanner scanner = new Scanner(System.in);
+private static double monthlyBudget = 0.0;
+private static final String BUDGET_FILE = "budget.txt";
+private static final String CSV_FILE = "expenses.csv";
+
+
+// Store category-specific spending limits.
+private static Map<String, Double> categoryBudgets = new LinkedHashMap<>();
 
     public static void main(String[] args) {
 
@@ -31,9 +35,20 @@ public class Main {
 
         loadMonthlyBudget();
 
-        int choice = 0;
+// Load saved category budgets.
+try {
+    categoryBudgets = new LinkedHashMap<>(
+        CategoryBudgetStorage.loadBudgets()
+    );
+    System.out.println("Category budgets loaded successfully.");
+} catch (IOException e) {
+    System.out.println(
+        "Could not load category budgets: " + e.getMessage()
+    );
+}
 
-        while (choice != 18) {
+int choice = 0;
+        while (choice != 19) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -52,7 +67,8 @@ System.out.println("14. Spending Alerts");
 System.out.println("15. Budget Performance Report");
 System.out.println("16. Expense Statistics Dashboard");
 System.out.println("17. Filter Expenses by Date Range");
-System.out.println("18. Exit");           System.out.print("Enter your choice: ");
+System.out.println("18. Manage Category Budgets");
+System.out.println("19. Exit");        System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
@@ -135,11 +151,12 @@ case 17:
     break;
 
 case 18:
-    System.out.println(
-        "Thank you for using Expense Analyzer!"
-    );
+    manageCategoryBudgets();
     break;
 
+case 19:
+    System.out.println("Exiting Expense Analyzer. Goodbye!");
+    break;
 default:
     System.out.println(
         "Invalid choice. Please select 1-17."
@@ -1312,4 +1329,107 @@ private static void budgetPerformanceReport() {
             );
         }
     }
+private static void manageCategoryBudgets() {
+
+    while (true) {
+
+        System.out.println("\n===== CATEGORY BUDGET MANAGEMENT =====");
+        System.out.println("1. Set Category Budget");
+        System.out.println("2. View Category Budgets");
+        System.out.println("3. Return to Main Menu");
+        System.out.print("Enter your choice: ");
+
+               String input = scanner.nextLine().trim();
+
+        switch (input) {
+
+            case "1":
+                setCategoryBudget();
+                break;
+
+            case "2":
+                viewCategoryBudgets();
+                break;
+
+            case "3":
+                return;
+
+            default:
+                System.out.println("Invalid choice. Please enter 1, 2, or 3.");
+        }
+    }
+
+}
+
+private static void setCategoryBudget() {
+
+    System.out.print("Enter category name: ");
+    String category = scanner.nextLine().trim();
+
+    if (category.isBlank()) {
+        System.out.println("Category name cannot be empty.");
+        return;
+    }
+
+    System.out.print("Enter budget limit (Rs.): ");
+    String input = scanner.nextLine().trim();
+
+    try {
+        double amount = Double.parseDouble(input);
+
+        if (!Double.isFinite(amount) || amount <= 0) {
+            System.out.println("Budget must be a positive number.");
+            return;
+        }
+
+        categoryBudgets.put(category, amount);
+        CategoryBudgetStorage.saveBudgets(categoryBudgets);
+
+        System.out.printf(
+            "Budget set successfully for %s: Rs. %.2f%n",
+            category, amount
+        );
+
+    } catch (NumberFormatException e) {
+        System.out.println("Invalid amount. Please enter a number.");
+
+    } catch (IOException e) {
+        System.out.println(
+            "Could not save category budget: " + e.getMessage()
+        );
+    }
+}
+private static void viewCategoryBudgets() {
+
+    System.out.println("\n===== CATEGORY BUDGETS =====");
+
+    if (categoryBudgets.isEmpty()) {
+        System.out.println("No category budgets have been set yet.");
+        return;
+    }
+
+    for (Map.Entry<String, Double> entry : categoryBudgets.entrySet()) {
+
+        String category = entry.getKey();
+        double limit = entry.getValue();
+        double spent = 0.0;
+
+        for (Expense expense : expenses) {
+            if (expense.getCategory().equalsIgnoreCase(category)) {
+                spent += expense.getAmount();
+            }
+        }
+
+        System.out.println("\nCategory: " + category);
+        System.out.printf("Budget limit: Rs. %.2f%n", limit);
+        System.out.printf("Total spent:  Rs. %.2f%n", spent);
+        System.out.printf("Remaining:    Rs. %.2f%n", limit - spent);
+
+        if (spent > limit) {
+            System.out.println("WARNING: Category budget exceeded!");
+        } else {
+            System.out.println("Status: Within category budget.");
+        }
+    }
+}
 }

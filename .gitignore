@@ -21,3 +21,6 @@ budget.txt
 
 # Exported expense data
 expenses.csv
+
+# Saved category budgets
+category_budgets.txt
