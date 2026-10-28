@@ -48,7 +48,7 @@ try {
 }
 
 int choice = 0;
-        while (choice != 20) {
+        while (choice != 21) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -69,7 +69,8 @@ System.out.println("16. Expense Statistics Dashboard");
 System.out.println("17. Filter Expenses by Date Range");
 System.out.println("18. Manage Category Budgets");
 System.out.println("19. Monthly Budget Recommendation");
-System.out.println("20. Exit");  System.out.print("Enter your choice: ");
+System.out.println("20. Monthly Spending Comparison");
+System.out.println("21. Exit");System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
@@ -160,8 +161,13 @@ case 19:
     break;
 
 case 20:
+    compareMonthlySpending();
+    break;
+
+case 21:
     System.out.println("Exiting Expense Analyzer. Goodbye!");
-    break;default:
+    break;
+default:
     System.out.println(
         "Invalid choice. Please select 1-17."
     );            }
@@ -1490,5 +1496,99 @@ private static void viewCategoryBudgets() {
     System.out.println(
         "\nRecommendation: Use this amount as a starting point for your monthly budget."
     );
+}
+private static void compareMonthlySpending() {
+
+    System.out.println("\n===== MONTHLY SPENDING COMPARISON =====");
+
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available to analyze.");
+        return;
+    }
+
+    Scanner input = new Scanner(System.in);
+
+    System.out.print("Enter the first month (1-12): ");
+    int firstMonth = input.nextInt();
+
+    System.out.print("Enter the first year (e.g., 2026): ");
+    int firstYear = input.nextInt();
+
+    System.out.print("Enter the second month (1-12): ");
+    int secondMonth = input.nextInt();
+
+    System.out.print("Enter the second year (e.g., 2026): ");
+    int secondYear = input.nextInt();
+
+    if (firstMonth < 1 || firstMonth > 12
+            || secondMonth < 1 || secondMonth > 12
+            || firstYear < 1 || secondYear < 1) {
+
+        System.out.println("Invalid month or year.");
+        return;
+    }
+
+    double firstTotal = 0.0;
+    double secondTotal = 0.0;
+
+    for (Expense expense : expenses) {
+
+        int month = expense.getDate().getMonthValue();
+        int year = expense.getDate().getYear();
+
+        if (month == firstMonth && year == firstYear) {
+            firstTotal += expense.getAmount();
+        }
+
+        if (month == secondMonth && year == secondYear) {
+            secondTotal += expense.getAmount();
+        }
+    }
+
+    System.out.printf(
+        "%nFirst month spending:  Rs. %.2f%n",
+        firstTotal
+    );
+
+    System.out.printf(
+        "Second month spending: Rs. %.2f%n",
+        secondTotal
+    );
+
+    double difference = secondTotal - firstTotal;
+
+    System.out.printf(
+        "Spending difference:   Rs. %.2f%n",
+        Math.abs(difference)
+    );
+
+    if (firstTotal == 0.0 && secondTotal == 0.0) {
+
+        System.out.println("No spending recorded for either month.");
+
+    } else if (firstTotal == 0.0) {
+
+        System.out.println(
+            "Percentage change cannot be calculated because the first month has no spending."
+        );
+
+    } else {
+
+        double percentageChange =
+                (difference / firstTotal) * 100.0;
+
+        System.out.printf(
+            "Spending change: %.2f%%%n",
+            percentageChange
+        );
+
+        if (difference > 0) {
+            System.out.println("Your spending increased.");
+        } else if (difference < 0) {
+            System.out.println("Great! Your spending decreased.");
+        } else {
+            System.out.println("Your spending stayed the same.");
+        }
+    }
 }
 }
