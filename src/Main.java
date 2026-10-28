@@ -48,7 +48,7 @@ try {
 }
 
 int choice = 0;
-        while (choice != 19) {
+        while (choice != 20) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -68,7 +68,8 @@ System.out.println("15. Budget Performance Report");
 System.out.println("16. Expense Statistics Dashboard");
 System.out.println("17. Filter Expenses by Date Range");
 System.out.println("18. Manage Category Budgets");
-System.out.println("19. Exit");        System.out.print("Enter your choice: ");
+System.out.println("19. Monthly Budget Recommendation");
+System.out.println("20. Exit");  System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
@@ -155,9 +156,12 @@ case 18:
     break;
 
 case 19:
-    System.out.println("Exiting Expense Analyzer. Goodbye!");
+    recommendMonthlyBudget();
     break;
-default:
+
+case 20:
+    System.out.println("Exiting Expense Analyzer. Goodbye!");
+    break;default:
     System.out.println(
         "Invalid choice. Please select 1-17."
     );            }
@@ -1425,11 +1429,66 @@ private static void viewCategoryBudgets() {
         System.out.printf("Total spent:  Rs. %.2f%n", spent);
         System.out.printf("Remaining:    Rs. %.2f%n", limit - spent);
 
-        if (spent > limit) {
+               if (spent > limit) {
             System.out.println("WARNING: Category budget exceeded!");
         } else {
             System.out.println("Status: Within category budget.");
         }
     }
+}
+
+    private static void recommendMonthlyBudget() {
+    System.out.println("\n===== MONTHLY BUDGET RECOMMENDATION =====");
+
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available to analyze.");
+        return;
+    }
+
+    Map<String, Double> monthlyTotals = new LinkedHashMap<>();
+
+    for (Expense expense : expenses) {
+
+        String monthKey = expense.getDate().getYear()
+                + "-"
+                + String.format("%02d", expense.getDate().getMonthValue());
+
+        double currentTotal = monthlyTotals.getOrDefault(monthKey, 0.0);
+
+        monthlyTotals.put(
+            monthKey,
+            currentTotal + expense.getAmount()
+        );
+    }
+
+    double totalSpending = 0.0;
+
+    for (double monthlyTotal : monthlyTotals.values()) {
+        totalSpending += monthlyTotal;
+    }
+
+    double averageMonthlySpending =
+            totalSpending / monthlyTotals.size();
+
+    double recommendedBudget = averageMonthlySpending * 1.10;
+
+    System.out.printf(
+        "Months analyzed: %d%n",
+        monthlyTotals.size()
+    );
+
+    System.out.printf(
+        "Average monthly spending: Rs. %.2f%n",
+        averageMonthlySpending
+    );
+
+    System.out.printf(
+        "Recommended monthly budget (10%% buffer): Rs. %.2f%n",
+        recommendedBudget
+    );
+
+    System.out.println(
+        "\nRecommendation: Use this amount as a starting point for your monthly budget."
+    );
 }
 }
