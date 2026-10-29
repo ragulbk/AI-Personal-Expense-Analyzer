@@ -438,63 +438,124 @@ default:
         }
     }
 
-    // Search expenses by name or category.
-    private static void searchExpenses() {
+    // Search expenses by name, category, or amount.
+private static void searchExpenses() {
 
-        System.out.println("\n===== SEARCH EXPENSES =====");
-        System.out.print(
-            "Enter an expense name or category to search: "
-        );
+    System.out.println("\n===== SEARCH EXPENSES =====");
 
-        String query = scanner.nextLine().trim();
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available to search.");
+        return;
+    }
 
-        if (query.isBlank()) {
-            System.out.println("Search text cannot be empty.");
+    System.out.println("Search by:");
+    System.out.println("1. Expense name");
+    System.out.println("2. Category");
+    System.out.println("3. Exact amount");
+    System.out.println("4. Name, category, or amount");
+    System.out.print("Choose an option: ");
+
+    String choice = scanner.nextLine().trim();
+
+    if (!choice.matches("[1-4]")) {
+        System.out.println("Invalid choice. Select 1, 2, 3, or 4.");
+        return;
+    }
+
+    System.out.print("Enter your search value: ");
+    String query = scanner.nextLine().trim();
+
+    if (query.isBlank()) {
+        System.out.println("Search value cannot be empty.");
+        return;
+    }
+
+    double searchAmount = 0.0;
+
+    if (choice.equals("3")) {
+        try {
+            searchAmount = Double.parseDouble(query);
+
+            if (!Double.isFinite(searchAmount) || searchAmount < 0) {
+                System.out.println("Enter a valid non-negative amount.");
+                return;
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid amount.");
             return;
         }
+    }
 
-        String searchText = query.toLowerCase();
-        int matchCount = 0;
-        double matchingTotal = 0.0;
+    int matchCount = 0;
+    double matchingTotal = 0.0;
 
-        for (Expense expense : expenses) {
+    System.out.println("\n===== SEARCH RESULTS =====");
 
-            boolean nameMatches =
-                expense.getName().toLowerCase().contains(searchText);
+    for (Expense expense : expenses) {
 
-            boolean categoryMatches =
-                expense.getCategory().toLowerCase().contains(searchText);
+        boolean matches = false;
 
-            if (nameMatches || categoryMatches) {
-                matchCount++;
+        if (choice.equals("1")) {
+            matches = expense.getName()
+                    .toLowerCase()
+                    .contains(query.toLowerCase());
 
-                System.out.println("\nMatch #" + matchCount);
-                System.out.println("Name: " + expense.getName());
-                System.out.println("Category: " + expense.getCategory());
+        } else if (choice.equals("2")) {
+            matches = expense.getCategory()
+                    .toLowerCase()
+                    .contains(query.toLowerCase());
 
-                System.out.printf(
-                    "Amount: Rs. %.2f%n",
-                    expense.getAmount()
-                );
+        } else if (choice.equals("3")) {
+            matches = Double.compare(
+                    expense.getAmount(),
+                    searchAmount
+            ) == 0;
 
-                System.out.println("Date: " + expense.getDate());
-
-                matchingTotal += expense.getAmount();
-            }
+        } else if (choice.equals("4")) {
+            matches = expense.getName()
+                    .toLowerCase()
+                    .contains(query.toLowerCase())
+                    || expense.getCategory()
+                    .toLowerCase()
+                    .contains(query.toLowerCase())
+                    || String.valueOf(expense.getAmount())
+                    .equals(query);
         }
 
-        if (matchCount == 0) {
-            System.out.println("No expenses matched: " + query);
-        } else {
-            System.out.println("\n===== SEARCH SUMMARY =====");
-            System.out.println("Matching expenses: " + matchCount);
+        if (matches) {
+
+            matchCount++;
+
+            System.out.println("\nMatch #" + matchCount);
+            System.out.println("Name: " + expense.getName());
+            System.out.println("Category: " + expense.getCategory());
 
             System.out.printf(
-                "Total of matching expenses: Rs. %.2f%n",
-                matchingTotal
+                    "Amount: Rs. %.2f%n",
+                    expense.getAmount()
             );
+
+            System.out.println("Date: " + expense.getDate());
+
+            matchingTotal += expense.getAmount();
         }
     }
+
+    if (matchCount == 0) {
+        System.out.println("No expenses matched your search.");
+
+    } else {
+
+        System.out.println("\n===== SEARCH SUMMARY =====");
+        System.out.println("Matching expenses: " + matchCount);
+
+        System.out.printf(
+                "Total of matching expenses: Rs. %.2f%n",
+                matchingTotal
+        );
+    }
+}
         
 // NEW DATE-FILTERING METHOD WILL GO HERE
     // Filter expenses between two dates.
