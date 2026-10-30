@@ -74,7 +74,7 @@ System.out.println("21. Exit");System.out.print("Enter your choice: ");
 
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 18."
+                    "Invalid input. Enter a number from 1 to 21."
                 );
                 scanner.nextLine();
                 continue;
@@ -169,7 +169,7 @@ case 21:
     break;
 default:
     System.out.println(
-        "Invalid choice. Please select 1-17."
+        "Invalid choice. Please select 1-21."
     );            }
         }
 
