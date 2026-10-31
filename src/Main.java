@@ -48,7 +48,7 @@ try {
 }
 
 int choice = 0;
-        while (choice != 21) {
+        while (choice != 22) {
             System.out.println("\n===== AI PERSONAL EXPENSE ANALYZER =====");
             System.out.println("1. Add Expense");
             System.out.println("2. View All Expenses");
@@ -70,11 +70,12 @@ System.out.println("17. Filter Expenses by Date Range");
 System.out.println("18. Manage Category Budgets");
 System.out.println("19. Monthly Budget Recommendation");
 System.out.println("20. Monthly Spending Comparison");
-System.out.println("21. Exit");System.out.print("Enter your choice: ");
-
+System.out.println("21. AI Expense Assistant");
+System.out.println("22. Exit");
+System.out.print("Enter your choice: ");
             if (!scanner.hasNextInt()) {
                 System.out.println(
-                    "Invalid input. Enter a number from 1 to 21."
+                    "Invalid input. Enter a number from 1 to 22."
                 );
                 scanner.nextLine();
                 continue;
@@ -165,11 +166,15 @@ case 20:
     break;
 
 case 21:
+    interactiveAIAssistant();
+    break;
+
+case 22:
     System.out.println("Exiting Expense Analyzer. Goodbye!");
     break;
 default:
     System.out.println(
-        "Invalid choice. Please select 1-21."
+        "Invalid choice. Please select 1-22."
     );            }
         }
 
@@ -1567,19 +1572,19 @@ private static void compareMonthlySpending() {
         return;
     }
 
-    Scanner input = new Scanner(System.in);
 
     System.out.print("Enter the first month (1-12): ");
-    int firstMonth = input.nextInt();
+int firstMonth = scanner.nextInt();
 
     System.out.print("Enter the first year (e.g., 2026): ");
-    int firstYear = input.nextInt();
+int firstYear = scanner.nextInt();
 
     System.out.print("Enter the second month (1-12): ");
-    int secondMonth = input.nextInt();
+int secondMonth = scanner.nextInt();
 
     System.out.print("Enter the second year (e.g., 2026): ");
-    int secondYear = input.nextInt();
+int secondYear = scanner.nextInt();
+scanner.nextLine();
 
     if (firstMonth < 1 || firstMonth > 12
             || secondMonth < 1 || secondMonth > 12
@@ -1652,4 +1657,51 @@ private static void compareMonthlySpending() {
         }
     }
 }
+private static void interactiveAIAssistant() {
+
+    AIExpenseAssistant assistant = new AIExpenseAssistant();
+
+    if (!assistant.isAIConfigured()) {
+        System.out.println("AI API key is missing. Please configure AI_API_KEY.");
+        return;
+    }
+
+    if (expenses.isEmpty()) {
+        System.out.println("No expenses available. Add some expenses first.");
+        return;
+    }
+
+    System.out.println("\n========== AI EXPENSE ASSISTANT ==========");
+    System.out.println("Ask questions about your expenses.");
+    System.out.println("Type 'exit' to return to the main menu.");
+
+    while (true) {
+
+        System.out.print("\nYour question: ");
+        String question = scanner.nextLine().trim();
+
+        if (question.equalsIgnoreCase("exit")) {
+            System.out.println("Returning to the main menu...");
+            break;
+        }
+
+        if (question.isEmpty()) {
+            System.out.println("Please enter a question.");
+            continue;
+        }
+
+        try {
+            System.out.println("\nGemini is thinking...");
+
+            String response = assistant.askAboutExpenses(expenses, question);
+
+            System.out.println("\nAI Assistant:");
+            System.out.println(response);
+
+        } catch (Exception e) {
+            System.out.println("Unable to get an AI response: " + e.getMessage());
+        }
+    }
+}
+
 }

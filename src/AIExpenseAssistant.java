@@ -163,4 +163,42 @@ if (response.statusCode() == 200) {
 
         return askGemini(prompt);
     }
+        
+    // Answer questions about the user's expenses using Gemini AI.
+    public String askAboutExpenses(ArrayList<Expense> expenses, String question) {
+
+        if (expenses == null || expenses.isEmpty()) {
+            return "No expenses available to answer your question.";
+        }
+
+        StringBuilder expenseDetails = new StringBuilder();
+
+        for (Expense expense : expenses) {
+            expenseDetails.append("Name: ")
+                    .append(expense.getName())
+                    .append(", Category: ")
+                    .append(expense.getCategory())
+                    .append(", Amount: Rs. ")
+                    .append(expense.getAmount())
+                    .append(", Date: ")
+                    .append(expense.getDate())
+                    .append("\n");
+        }
+
+        String prompt = """
+                You are a helpful personal finance assistant.
+                Answer the user's question using the expense records below.
+                Give clear, practical answers in simple language.
+                Do not invent expense information.
+
+                Expense Records:
+                %s
+
+                User's Question:
+                %s
+                """.formatted(expenseDetails, question);
+
+        return askGemini(prompt);
+    }
+
 }
